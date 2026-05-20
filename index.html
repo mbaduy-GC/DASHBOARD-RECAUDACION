@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Facturación Mayo 2026 — General Collect</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0c10;
+  --bg2: #0f1218;
+  --bg3: #151a22;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.1);
+  --text: #e8eaed;
+  --muted: #6b7280;
+  --accent: #f59e0b;
+  --accent2: #fbbf24;
+  --green: #10b981;
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --purple: #8b5cf6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0}
+
+/* HEADER */
+.top-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px)}
+.logo-mark{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#f97316);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;letter-spacing:-.5px}
+.brand-name{font-size:15px;font-weight:700;color:#fff;letter-spacing:-.3px}
+.brand-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.top-tags{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tag{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;font-family:'DM Mono',monospace}
+.tag-amber{background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.25)}
+.tag-gray{background:rgba(255,255,255,.04);color:var(--muted);border:1px solid var(--border)}
+.tag-green{background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.25)}
+
+/* LAYOUT */
+.content{padding:24px 28px 48px}
+.section-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section-title::before{content:'';width:3px;height:14px;background:var(--accent);border-radius:2px}
+
+/* TABS */
+.tab-bar{display:flex;gap:4px;margin-bottom:24px;border-bottom:1px solid var(--border);padding-bottom:0}
+.tb{padding:9px 18px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);background:none;border:none;border-bottom:2px solid transparent;transition:all .2s;margin-bottom:-1px;letter-spacing:.2px}
+.tb.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tb:hover:not(.active){color:var(--text)}
+.panel{display:none}.panel.active{display:block}
+
+/* KPI GRID */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+.kcard{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden;transition:border-color .2s}
+.kcard:hover{border-color:var(--border2)}
+.kcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kcard.amber::before{background:linear-gradient(90deg,#f59e0b,#f97316)}
+.kcard.green::before{background:linear-gradient(90deg,#10b981,#34d399)}
+.kcard.red::before{background:linear-gradient(90deg,#ef4444,#f87171)}
+.kcard.blue::before{background:linear-gradient(90deg,#3b82f6,#60a5fa)}
+.kcard.purple::before{background:linear-gradient(90deg,#8b5cf6,#a78bfa)}
+.kcard-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.9px;margin-bottom:8px;font-weight:600}
+.kcard-value{font-size:24px;font-weight:700;line-height:1;letter-spacing:-1px}
+.kcard-sub{font-size:11px;color:var(--muted);margin-top:6px}
+.kcard-bar{height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:12px;overflow:hidden}
+.kcard-fill{height:100%;border-radius:2px;transition:width .8s ease}
+.v-amber{color:#f59e0b}.v-green{color:#10b981}.v-red{color:#ef4444}.v-blue{color:#3b82f6}.v-white{color:#fff}
+
+/* CARDS */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:860px){.grid2{grid-template-columns:1fr}}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:960px){.grid3{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.grid3{grid-template-columns:1fr}}
+.card{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px}
+.card-head{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.cw{position:relative;width:100%;height:230px}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl thead th{text-align:left;color:var(--muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;padding:6px 10px;border-bottom:1px solid var(--border)}
+.tbl tbody tr{border-bottom:1px solid rgba(255,255,255,.03);transition:background .15s}
+.tbl tbody tr:last-child{border-bottom:none}
+.tbl tbody tr:hover{background:rgba(255,255,255,.025)}
+.tbl td{padding:9px 10px;color:#c9cdd5;vertical-align:middle}
+.tbl td.n{font-weight:600;color:var(--text);text-align:right;font-family:'DM Mono',monospace;font-size:11px}
+.tbl td.r{text-align:right}
+.tbl tr.total-row{background:rgba(245,158,11,.04);border-top:1px solid rgba(245,158,11,.15)!important}
+.tbl tr.total-row td{font-weight:700;color:var(--text)}
+
+/* PILL */
+.pill{display:inline-block;padding:2px 9px;border-radius:8px;font-size:10px;font-weight:700;font-family:'DM Mono',monospace}
+.pill-g{background:rgba(16,185,129,.1);color:#10b981}
+.pill-a{background:rgba(245,158,11,.12);color:#f59e0b}
+.pill-r{background:rgba(239,68,68,.1);color:#ef4444}
+.pill-b{background:rgba(59,130,246,.1);color:#3b82f6}
+
+/* PROGRESS BARS */
+.prog-item{margin-bottom:12px}
+.prog-item:last-child{margin-bottom:0}
+.prog-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.prog-name{font-size:12px;color:#b0b8c5;max-width:60%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prog-pct{font-size:11px;font-weight:700;font-family:'DM Mono',monospace}
+.prog-track{background:rgba(255,255,255,.06);border-radius:3px;height:5px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width .8s ease}
+
+/* INSIGHT BOX */
+.insight{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.18);border-radius:12px;padding:16px 18px;margin-bottom:16px}
+.insight-head{font-size:11px;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.insight-body{font-size:13px;color:#c9cdd5;line-height:1.65}
+.insight-body strong{color:var(--text)}
+
+.insight-green{background:rgba(16,185,129,.06);border-color:rgba(16,185,129,.18)}
+.insight-green .insight-head{color:#10b981}
+.insight-red{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.18)}
+.insight-red .insight-head{color:#ef4444}
+.insight-blue{background:rgba(59,130,246,.06);border-color:rgba(59,130,246,.18)}
+.insight-blue .insight-head{color:#3b82f6}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--border);margin:20px 0}
+
+/* SPARKLINE */
+.mini-stat{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.mini-stat .dot{width:6px;height:6px;border-radius:50%}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="logo-mark">GC</div>
+  <div>
+    <div class="brand-name">Dashboard de Facturación</div>
+    <div class="brand-sub">General Collect — Asset Recovery | BPO</div>
+  </div>
+  <div class="top-tags">
+    <span class="tag tag-amber">Mayo 2026</span>
+    <span class="tag tag-green">Datos al 19/05</span>
+    <span class="tag tag-gray">12 días facturados · 6 por facturar</span>
+  </div>
+</div>
+
+<div class="content">
+
+<div class="tab-bar">
+  <button class="tb active" onclick="showTab('resumen',this)">Resumen General</button>
+  <button class="tb" onclick="showTab('clientes',this)">Por Cliente</button>
+  <button class="tb" onclick="showTab('segmentos',this)">Activo vs Soporte</button>
+  <button class="tb" onclick="showTab('evolucion',this)">Evolución Diaria</button>
+  <button class="tb" onclick="showTab('proyeccion',this)">Proyección</button>
+</div>
+
+<!-- ═══════════════════════════ RESUMEN ═══════════════════════════ -->
+<div id="tab-resumen" class="panel active">
+
+  <div class="kpi-row">
+    <div class="kcard amber">
+      <div class="kcard-label">Objetivo Mayo</div>
+      <div class="kcard-value v-white">$4.021M</div>
+      <div class="kcard-sub">Total empresa</div>
+    </div>
+    <div class="kcard amber">
+      <div class="kcard-label">Recaudado acumulado</div>
+      <div class="kcard-value v-amber">$1.657M</div>
+      <div class="kcard-sub">Al 19/05 · sin jud.</div>
+      <div class="kcard-bar"><div class="kcard-fill" style="width:41.2%;background:#f59e0b"></div></div>
+    </div>
+    <div class="kcard green">
+      <div class="kcard-label">Con Prendas Judiciales</div>
+      <div class="kcard-value v-green">$1.778M</div>
+      <div class="kcard-sub">44,2% cumplimiento</div>
+      <div class="kcard-bar"><div class="kcard-fill" style="width:44.2%;background:#10b981"></div></div>
+    </div>
+    <div class="kcard red">
+      <div class="kcard-label">Faltante sin jud.</div>
+      <div class="kcard-value v-red">$2.364M</div>
+      <div class="kcard-sub">Quedan 6 días hábiles</div>
+    </div>
+    <div class="kcard blue">
+      <div class="kcard-label">Ingreso día 19/05</div>
+      <div class="kcard-value v-blue">$137,4M</div>
+      <div class="kcard-sub">314 pagos · prom $437K</div>
+    </div>
+    <div class="kcard purple">
+      <div class="kcard-label">Proyección mensual</div>
+      <div class="kcard-value" style="color:#8b5cf6">$2.486M</div>
+      <div class="kcard-sub">61,8% del objetivo</div>
+      <div class="kcard-bar"><div class="kcard-fill" style="width:61.8%;background:#8b5cf6"></div></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head">Cumplimiento por cliente (%)</div>
+      <div class="cw"><canvas id="chartClientes"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head">Recaudado vs Objetivo (M$)</div>
+      <div class="cw"><canvas id="chartComp"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">Tabla resumen por cliente</div>
+    <table class="tbl">
+      <thead><tr>
+        <th>Cliente</th>
+        <th class="r">Objetivo</th>
+        <th class="r">Recaudado</th>
+        <th class="r">Cumpl.</th>
+        <th class="r">Faltante</th>
+        <th class="r">Estado</th>
+      </tr></thead>
+      <tbody id="tblResumen"></tbody>
+    </table>
+  </div>
+
+  <div class="grid2">
+    <div class="insight">
+      <div class="insight-head">⚡ Destacado del día 19/05</div>
+      <div class="insight-body">
+        Ingreso total de <strong>$137,4M</strong> en 314 pagos. <strong>ICBC SAU</strong> lideró con $45,7M (96 pagos · prom $476K). <strong>Santander Consumer</strong> aportó $38,9M (132 pagos · prom $294K). <strong>Naranja 3°</strong> cerró con $6M en 27 pagos.
+      </div>
+    </div>
+    <div class="insight insight-green">
+      <div class="insight-head">✓ Mejor performance</div>
+      <div class="insight-body">
+        <strong>Santander Consumer</strong> lidera el cumplimiento con <strong>53,1%</strong> del objetivo mensual, siendo el cliente más avanzado. <strong>Supervielle Segunda</strong> alcanza el <strong>74,8%</strong>, el más alto de toda la cartera. <strong>Naranja X</strong> con 54%.
+      </div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="insight insight-red">
+      <div class="insight-head">⚠ Clientes críticos</div>
+      <div class="insight-body">
+        <strong>Santander Segunda</strong> (31,6%) y <strong>Santander Prendarios Reciclado</strong> (38,3%) están por debajo del ritmo esperado. Con solo 6 días restantes, necesitan <strong>$287M+/día</strong> para alcanzar el objetivo global.
+      </div>
+    </div>
+    <div class="insight insight-blue">
+      <div class="insight-head">📊 Flashback vs Abril</div>
+      <div class="insight-body">
+        Abril cerró con <strong>$2.954M</strong> (48% cumpl.). Al mismo día 13 de ambos meses, Mayo va levemente por detrás. El ritmo diario promedio de Mayo es de <strong>~$115M/día</strong>, vs $147M/día que necesita para el objetivo.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════ CLIENTES ═══════════════════════════ -->
+<div id="tab-clientes" class="panel">
+
+  <div class="kpi-row">
+    <div class="kcard amber">
+      <div class="kcard-label">ICBC SAU</div>
+      <div class="kcard-value v-amber">37,6%</div>
+      <div class="kcard-sub">$637M / $1.694M</div>
+      <div class="kcard-bar"><div class="kcard-fill" style="width:37.6%;background:#f59e0b"></div></div>
+    </div>
+    <div class="kcard amber">
+      <div class="kcard-label">Santander Segunda</div>
+      <div class="kcard-value v-red">31,6%</div>
+      <div class="kcard-sub">$247M / $782M</div>
+      <div class="kcard-bar"><div class="kcard-fill" style="width:31.6%;background:#ef4444"></div></div>
+    </div>
+    <div class="kcard green">
+      <div class="kcard-label">Santander Consumer</div>
+      <div class="kcard-value v-green">53,1%</div>
+      <div class="kcard-sub">$433M / $815M</div>
+      <div class="kcard-bar"><div class="kcard-fill" style="width:53.1%;background:#10b981"></div></div>
+    </div>
+    <div class="kcard blue">
+      <div class="kcard-label">Naranja X</div>
+      <div class="kcard-value v-blue">54%</div>
+      <div class="kcard-sub">$84M / $155M</div>
+      <div class="kcard-bar"><div class="kcard-fill" style="width:54%;background:#3b82f6"></div></div>
+    </div>
+    <div class="kcard green">
+      <div class="kcard-label">Supervielle Segunda</div>
+      <div class="kcard-value v-green">74,8%</div>
+      <div class="kcard-sub">$7,7M / $10,3M</div>
+      <div class="kcard-bar"><div class="kcard-fill" style="width:74.8%;background:#10b981"></div></div>
+    </div>
+    <div class="kcard amber">
+      <div class="kcard-label">Stder Prend. Reciclado</div>
+      <div class="kcard-value v-amber">38,3%</div>
+      <div class="kcard-sub">$128M / $336M</div>
+      <div class="kcard-bar"><div class="kcard-fill" style="width:38.3%;background:#f59e0b"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">Progreso acumulado — todos los clientes</div>
+    <div id="progClientes"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head">Distribución del recaudado</div>
+      <div class="cw"><canvas id="chartDoughnut"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head">Ticket promedio por canal — día 19/05</div>
+      <div class="cw"><canvas id="chartTicket"></canvas></div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="insight-head">💡 Análisis por cliente</div>
+    <div class="insight-body">
+      <strong>ICBC SAU</strong> es el cliente con mayor objetivo ($1.694M) y mayor recaudado absoluto ($637M), aunque su cumplimiento relativo (37,6%) es inferior a Consumer. Su proyección a fin de mes es <strong>$956M (56,4%)</strong>. <strong>Santander Consumer</strong> tiene el mejor ratio calidad/volumen: 53,1% con $433M recaudados. <strong>Supervielle Segunda</strong> es la estrella relativa del período: 74,8% en solo $10,3M de objetivo. Los <strong>Prendas Judiciales</strong> de Santander y Supervielle suman $121M sin objetivo asignado (recuperos extraordinarios).
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════ SEGMENTOS ═══════════════════════════ -->
+<div id="tab-segmentos" class="panel">
+
+  <div class="kpi-row">
+    <div class="kcard red">
+      <div class="kcard-label">Objetivo Activo</div>
+      <div class="kcard-value v-white">$2.808M</div>
+      <div class="kcard-sub">69,8% del objetivo total</div>
+    </div>
+    <div class="kcard red">
+      <div class="kcard-label">Recaudado Activo</div>
+      <div class="kcard-value v-red">$1.083M</div>
+      <div class="kcard-sub">38,6% cumplimiento</div>
+      <div class="kcard-bar"><div class="kcard-fill" style="width:38.6%;background:#ef4444"></div></div>
+    </div>
+    <div class="kcard green">
+      <div class="kcard-label">Objetivo Soporte</div>
+      <div class="kcard-value v-white">$1.213M</div>
+      <div class="kcard-sub">30,2% del objetivo total</div>
+    </div>
+    <div class="kcard green">
+      <div class="kcard-label">Recaudado Soporte</div>
+      <div class="kcard-value v-green">$574M</div>
+      <div class="kcard-sub">47,3% cumplimiento</div>
+      <div class="kcard-bar"><div class="kcard-fill" style="width:47.3%;background:#10b981"></div></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head">Activo vs Soporte — Cumplimiento %</div>
+      <div class="cw"><canvas id="chartSegPct"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head">Activo vs Soporte — Montos ($M)</div>
+      <div class="cw"><canvas id="chartSegMonto"></canvas></div>
+    </div>
+  </div>
+
+  <div class="insight insight-green">
+    <div class="insight-head">📌 Soporte supera al Activo en ritmo</div>
+    <div class="insight-body">
+      El segmento <strong>Soporte</strong> presenta un cumplimiento de <strong>47,3%</strong> vs <strong>38,6%</strong> del Activo, una brecha de +8,7 puntos porcentuales. Esto indica que las gestiones de soporte (carteras más viejas o refinanciadas) están respondiendo mejor. <strong>Proyección Activo:</strong> $1.624M (57,8% del objetivo). Con 6 días restantes, Activo necesita ingresar ~$287M por día para cerrar el objetivo.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">Desglose Activo vs Soporte por cliente</div>
+    <table class="tbl">
+      <thead><tr>
+        <th>Segmento</th>
+        <th class="r">Objetivo</th>
+        <th class="r">Recaudado</th>
+        <th class="r">Cumpl.</th>
+        <th class="r">Faltante</th>
+        <th class="r">Proye. fin de mes</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="pill pill-r">Activo</span></td>
+          <td class="n">$2.808M</td>
+          <td class="n">$1.083M</td>
+          <td class="r"><span class="pill pill-r">38,6%</span></td>
+          <td class="n" style="color:#ef4444">$1.725M</td>
+          <td class="n" style="color:#8b5cf6">$1.624M</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-g">Soporte</span></td>
+          <td class="n">$1.213M</td>
+          <td class="n">$574M</td>
+          <td class="r"><span class="pill pill-g">47,3%</span></td>
+          <td class="n" style="color:#ef4444">$638M</td>
+          <td class="n" style="color:#8b5cf6">—</td>
+        </tr>
+        <tr class="total-row">
+          <td><strong>TOTAL</strong></td>
+          <td class="n">$4.021M</td>
+          <td class="n">$1.657M</td>
+          <td class="r"><span class="pill pill-a">41,2%</span></td>
+          <td class="n" style="color:#ef4444">$2.364M</td>
+          <td class="n" style="color:#8b5cf6">$2.486M</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════ EVOLUCIÓN ═══════════════════════════ -->
+<div id="tab-evolucion" class="panel">
+
+  <div class="kpi-row">
+    <div class="kcard amber">
+      <div class="kcard-label">Pico diario Mayo</div>
+      <div class="kcard-value v-amber">$198M</div>
+      <div class="kcard-sub">12 de Mayo · 551 pagos</div>
+    </div>
+    <div class="kcard blue">
+      <div class="kcard-label">Promedio diario Mayo</div>
+      <div class="kcard-value v-blue">$115M</div>
+      <div class="kcard-sub">13 días hábiles</div>
+    </div>
+    <div class="kcard green">
+      <div class="kcard-label">Mejor semana</div>
+      <div class="kcard-value v-green">$664M</div>
+      <div class="kcard-sub">Semana 11–15 Mayo</div>
+    </div>
+    <div class="kcard red">
+      <div class="kcard-label">Pico Abril (referencia)</div>
+      <div class="kcard-value" style="color:#a78bfa">$259M</div>
+      <div class="kcard-sub">20 de Abril · 732 pagos</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-head">Evolución acumulada — Mayo 2026 vs Abril 2026</div>
+    <div class="cw" style="height:270px"><canvas id="chartEvol"></canvas></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">Ingreso diario Mayo 2026 ($M)</div>
+    <div class="cw" style="height:220px"><canvas id="chartDiario"></canvas></div>
+  </div>
+
+  <div class="insight insight-blue">
+    <div class="insight-head">📈 Análisis de tendencia</div>
+    <div class="insight-body">
+      La curva acumulada de Mayo arrancó por encima de Abril en los primeros días, pero la semana del 5–8/05 fue más floja. La <strong>semana del 11–15/05 fue la más sólida</strong> ($664M en 5 días), con un pico de $198M el 12/05. El acumulado al día 13 del mes está levemente por debajo de Abril en términos relativos. El <strong>día 20/05 aún no tiene dato cargado</strong>.
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════ PROYECCIÓN ═══════════════════════════ -->
+<div id="tab-proyeccion" class="panel">
+
+  <div class="kpi-row">
+    <div class="kcard amber">
+      <div class="kcard-label">Proyección global</div>
+      <div class="kcard-value v-amber">$2.486M</div>
+      <div class="kcard-sub">61,8% del objetivo</div>
+      <div class="kcard-bar"><div class="kcard-fill" style="width:61.8%;background:#f59e0b"></div></div>
+    </div>
+    <div class="kcard red">
+      <div class="kcard-label">Necesario por día</div>
+      <div class="kcard-value v-red">$394M</div>
+      <div class="kcard-sub">Para cerrar objetivo</div>
+    </div>
+    <div class="kcard blue">
+      <div class="kcard-label">Días restantes</div>
+      <div class="kcard-value v-blue">6</div>
+      <div class="kcard-sub">Días hábiles estimados</div>
+    </div>
+    <div class="kcard amber">
+      <div class="kcard-label">Proyección Activo</div>
+      <div class="kcard-value v-amber">$1.624M</div>
+      <div class="kcard-sub">57,8% del obj. activo</div>
+      <div class="kcard-bar"><div class="kcard-fill" style="width:57.8%;background:#f59e0b"></div></div>
+    </div>
+    <div class="kcard">
+      <div class="kcard-label">Días facturados</div>
+      <div class="kcard-value v-white">12</div>
+      <div class="kcard-sub">De ~18 hábiles totales</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head">Proyección fin de mes por cliente ($M)</div>
+      <div class="cw"><canvas id="chartProye"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head">Escenarios posibles</div>
+      <div class="cw"><canvas id="chartEscenarios"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">Proyección por cliente</div>
+    <table class="tbl">
+      <thead><tr>
+        <th>Cliente</th>
+        <th class="r">Objetivo</th>
+        <th class="r">Recaudado</th>
+        <th class="r">Cumpl. actual</th>
+        <th class="r">Proyección</th>
+        <th class="r">Cumpl. proy.</th>
+      </tr></thead>
+      <tbody id="tblProye"></tbody>
+    </table>
+  </div>
+
+  <div class="insight insight-red">
+    <div class="insight-head">🎯 Brecha crítica</div>
+    <div class="insight-body">
+      Para alcanzar el objetivo global de $4.021M, la empresa necesita recaudar <strong>$394M por día hábil</strong> en los próximos 6 días — más del triple del promedio diario actual ($115M/día). La proyección realista del <strong>$2.486M implica un gap de $1.535M (38,2%)</strong> sin cubrir al cierre de mes. El escenario optimista (+30% del ritmo actual) llevaría a ~$3.2M (79,6% del objetivo).
+    </div>
+  </div>
+
+</div>
+
+</div><!-- /content -->
+
+<script>
+/* ─── DATA ─── */
+const clientes = [
+  {n:'ICBC SAU',          obj:1694721362, rec:637540600.6, pct:37.62, proye:956310900.9,  proyePct:56.43},
+  {n:'Santander Segunda', obj:782364293.5,rec:247261122.9, pct:31.60, proye:370891684.4,  proyePct:47.40},
+  {n:'Stder Prendarios',  obj:336578786.1,rec:128836420.4, pct:38.28, proye:193254630.5,  proyePct:57.42},
+  {n:'Consumer',          obj:815336019.1,rec:433345773.4, pct:53.15, proye:650018660,    proyePct:79.72},
+  {n:'Naranja X',         obj:155417971.8,rec:84001018.6,  pct:54.05, proye:126001527.9,  proyePct:81.07},
+  {n:'Supervielle 2da',   obj:10332176.63,rec:7726171.46,  pct:74.78, proye:11589257.19,  proyePct:112.17},
+  {n:'Stder Prend Ext',   obj:95388779.14,rec:48578472.08, pct:50.93, proye:72867708.12,  proyePct:76.39},
+  {n:'Sup Prend Ext',     obj:131612153.8,rec:69150203.38, pct:52.54, proye:103725305.1,  proyePct:78.81},
+];
+const segmentos = [
+  {n:'Activo', obj:2808360781, rec:1083198591, pct:38.57},
+  {n:'Soporte',obj:1213390761, rec:574531835.9,pct:47.35},
+];
+// Daily accumulation Mayo
+const mayoDias = [
+  {d:'04/05',acum:100243834.9, day:100243834.9},
+  {d:'05/05',acum:177976526.4, day:77732691.6},
+  {d:'06/05',acum:249173945.7, day:71197419.3},
+  {d:'07/05',acum:349338259.6, day:100164314},
+  {d:'08/05',acum:462986106.6, day:113647847},
+  {d:'11/05',acum:637158862.4, day:174172756},
+  {d:'12/05',acum:835804409.5, day:198645547},
+  {d:'13/05',acum:976625887,   day:140821478},
+  {d:'14/05',acum:1109535556,  day:132909669},
+  {d:'15/05',acum:1236092115,  day:126556560},
+  {d:'18/05',acum:1369581146,  day:133489031},
+  {d:'19/05',acum:1507011166,  day:137430019},
+];
+// Daily accumulation Abril (for comparison, same working day positions)
+const abrilDias = [
+  {d:'01/04',acum:101848631},
+  {d:'02/04',acum:178865064},
+  {d:'03/04',acum:338802452},
+  {d:'04/04',acum:437644889},
+  {d:'07/04',acum:554675292},
+  {d:'08/04',acum:655512724},
+  {d:'09/04',acum:832377890},
+  {d:'10/04',acum:1000716160},
+  {d:'11/04',acum:1127920733},
+  {d:'14/04',acum:1243257004},
+  {d:'15/04',acum:1350312544},
+  {d:'16/04',acum:1609351623},
+];
+const ingresoDia = [
+  {n:'ICBC SAU', v:45709659, q:96, prom:476142},
+  {n:'Consumer', v:38890253, q:132, prom:294623},
+  {n:'Stder Rio', v:36216855, q:46, prom:787323},
+  {n:'Supervielle',v:10589437, q:13, prom:814572},
+  {n:'Naranja 3°',v:6023815,  q:27, prom:223104},
+];
+
+/* ─── UTILS ─── */
+function fM(n){
+  if(!n&&n!==0)return '—';
+  const a=Math.abs(n);
+  if(a>=1e9)return '$'+(n/1e9).toFixed(2)+'B';
+  if(a>=1e6)return '$'+(n/1e6).toFixed(1)+'M';
+  if(a>=1e3)return '$'+(n/1e3).toFixed(0)+'K';
+  return '$'+Math.round(n);
+}
+function pc(p){return p>=60?'pill-g':p>=40?'pill-a':'pill-r';}
+function bc(p){return p>=60?'#10b981':p>=40?'#f59e0b':'#ef4444';}
+function showTab(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tb').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+const OPT={responsive:true,maintainAspectRatio:false,animation:{duration:600}};
+const gridOpt={color:'rgba(255,255,255,0.04)'};
+const tickOpt={color:'#6b7280',font:{size:10,family:"'DM Mono',monospace"}};
+
+/* ─── CHARTS ─── */
+// Tab Resumen
+new Chart(document.getElementById('chartClientes'),{
+  type:'bar',
+  data:{
+    labels:clientes.map(d=>d.n),
+    datasets:[
+      {data:clientes.map(d=>d.pct),backgroundColor:clientes.map(d=>bc(d.pct)),borderRadius:5,barPercentage:0.6},
+      {data:clientes.map(()=>100),type:'line',borderColor:'rgba(255,255,255,0.08)',borderDash:[4,4],borderWidth:1.5,pointRadius:0,fill:false}
+    ]
+  },
+  options:{...OPT,plugins:{legend:{display:false}},scales:{
+    x:{ticks:{...tickOpt,maxRotation:35},grid:{display:false}},
+    y:{min:0,max:110,ticks:{...tickOpt,callback:v=>v+'%'},grid:gridOpt}
+  }}
+});
+new Chart(document.getElementById('chartComp'),{
+  type:'bar',
+  data:{
+    labels:clientes.map(d=>d.n),
+    datasets:[
+      {label:'Objetivo',data:clientes.map(d=>Math.round(d.obj/1e6)),backgroundColor:'rgba(255,255,255,0.06)',borderRadius:4,barPercentage:0.5},
+      {label:'Recaudado',data:clientes.map(d=>Math.round(d.rec/1e6)),backgroundColor:'#f59e0b',borderRadius:4,barPercentage:0.5}
+    ]
+  },
+  options:{...OPT,plugins:{legend:{display:true,position:'top',labels:{color:'#888',font:{size:10,family:"'DM Mono',monospace"},boxWidth:10}}},scales:{
+    x:{ticks:{...tickOpt,maxRotation:35},grid:{display:false}},
+    y:{ticks:{...tickOpt,callback:v=>'$'+v+'M'},grid:gridOpt}
+  }}
+});
+document.getElementById('tblResumen').innerHTML = clientes.map(d=>`<tr>
+  <td style="font-weight:500;color:#e0e4e9">${d.n}</td>
+  <td class="n">${fM(d.obj)}</td>
+  <td class="n">${fM(d.rec)}</td>
+  <td class="r"><span class="pill ${pc(d.pct)}">${d.pct.toFixed(1)}%</span></td>
+  <td class="n" style="color:#ef4444">${fM(d.obj-d.rec)}</td>
+  <td class="r">${d.pct>=60?'🟢':d.pct>=40?'🟡':'🔴'}</td>
+</tr>`).join('')+`<tr class="total-row">
+  <td><strong>TOTAL SIN JUD.</strong></td>
+  <td class="n">$4.021M</td>
+  <td class="n" style="color:#f59e0b">$1.657M</td>
+  <td class="r"><span class="pill pill-a">41,2%</span></td>
+  <td class="n" style="color:#ef4444">$2.364M</td>
+  <td class="r">🟡</td>
+</tr>`;
+
+// Tab Clientes — progress bars
+document.getElementById('progClientes').innerHTML = clientes.map(d=>`
+<div class="prog-item">
+  <div class="prog-meta">
+    <span class="prog-name">${d.n}</span>
+    <span class="prog-pct" style="color:${bc(d.pct)}">${d.pct.toFixed(1)}% · ${fM(d.rec)} / ${fM(d.obj)}</span>
+  </div>
+  <div class="prog-track"><div class="prog-fill" style="width:${Math.min(d.pct,100)}%;background:${bc(d.pct)}"></div></div>
+</div>`).join('');
+
+new Chart(document.getElementById('chartDoughnut'),{
+  type:'doughnut',
+  data:{
+    labels:clientes.map(d=>d.n),
+    datasets:[{
+      data:clientes.map(d=>Math.round(d.rec/1e6)),
+      backgroundColor:['#f59e0b','#f97316','#10b981','#3b82f6','#8b5cf6','#ec4899','#06b6d4','#84cc16'],
+      borderColor:'var(--bg3)',borderWidth:2,hoverOffset:6
+    }]
+  },
+  options:{...OPT,plugins:{legend:{display:true,position:'right',labels:{color:'#888',font:{size:10,family:"'DM Mono',monospace"},boxWidth:10,padding:8}}}}
+});
+new Chart(document.getElementById('chartTicket'),{
+  type:'bar',
+  data:{
+    labels:ingresoDia.map(d=>d.n),
+    datasets:[{
+      data:ingresoDia.map(d=>Math.round(d.prom/1000)),
+      backgroundColor:['#f59e0b','#3b82f6','#10b981','#8b5cf6','#ec4899'],
+      borderRadius:6,barPercentage:0.55
+    }]
+  },
+  options:{...OPT,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'$'+c.parsed.y+'K'}}},scales:{
+    x:{ticks:tickOpt,grid:{display:false}},
+    y:{ticks:{...tickOpt,callback:v=>'$'+v+'K'},grid:gridOpt}
+  }}
+});
+
+// Tab Segmentos
+new Chart(document.getElementById('chartSegPct'),{
+  type:'bar',
+  data:{
+    labels:['Activo','Soporte'],
+    datasets:[
+      {label:'% Cumplido',data:[38.57,47.35],backgroundColor:['#ef4444','#10b981'],borderRadius:8,barPercentage:0.45},
+      {label:'% Faltante',data:[61.43,52.65],backgroundColor:['rgba(239,68,68,0.15)','rgba(16,185,129,0.15)'],borderRadius:8,barPercentage:0.45}
+    ]
+  },
+  options:{...OPT,indexAxis:'y',plugins:{legend:{display:true,position:'top',labels:{color:'#888',font:{size:10},boxWidth:10}}},scales:{
+    x:{min:0,max:100,ticks:{...tickOpt,callback:v=>v+'%'},grid:gridOpt},
+    y:{ticks:{color:'#e0e4e9',font:{size:13}},grid:{display:false}}
+  }}
+});
+new Chart(document.getElementById('chartSegMonto'),{
+  type:'bar',
+  data:{
+    labels:['Activo','Soporte'],
+    datasets:[
+      {label:'Objetivo',data:[2808,1213],backgroundColor:'rgba(255,255,255,0.07)',borderRadius:5,barPercentage:0.5},
+      {label:'Recaudado',data:[1083,575],backgroundColor:['#ef4444','#10b981'],borderRadius:5,barPercentage:0.5}
+    ]
+  },
+  options:{...OPT,plugins:{legend:{display:true,position:'top',labels:{color:'#888',font:{size:10},boxWidth:10}}},scales:{
+    x:{ticks:{color:'#e0e4e9',font:{size:13}},grid:{display:false}},
+    y:{ticks:{...tickOpt,callback:v=>'$'+v+'M'},grid:gridOpt}
+  }}
+});
+
+// Tab Evolución
+new Chart(document.getElementById('chartEvol'),{
+  type:'line',
+  data:{
+    labels:mayoDias.map(d=>d.d),
+    datasets:[
+      {label:'Mayo 2026',data:mayoDias.map(d=>Math.round(d.acum/1e6)),borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.07)',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#f59e0b',fill:true,tension:0.35},
+      {label:'Abril 2026',data:abrilDias.map(d=>Math.round(d.acum/1e6)),borderColor:'rgba(139,92,246,0.6)',backgroundColor:'rgba(139,92,246,0.04)',borderWidth:1.5,pointRadius:3,pointBackgroundColor:'rgba(139,92,246,0.6)',fill:true,tension:0.35,borderDash:[5,4]}
+    ]
+  },
+  options:{...OPT,plugins:{legend:{display:true,position:'top',labels:{color:'#888',font:{size:10},boxWidth:10}}},scales:{
+    x:{ticks:{...tickOpt,maxRotation:40},grid:{display:false}},
+    y:{ticks:{...tickOpt,callback:v=>'$'+v+'M'},grid:gridOpt}
+  }}
+});
+new Chart(document.getElementById('chartDiario'),{
+  type:'bar',
+  data:{
+    labels:mayoDias.map(d=>d.d),
+    datasets:[{
+      data:mayoDias.map(d=>Math.round(d.day/1e6)),
+      backgroundColor:mayoDias.map(d=>d.day>=150e6?'#10b981':d.day>=100e6?'#f59e0b':'#ef4444'),
+      borderRadius:6,barPercentage:0.65
+    }]
+  },
+  options:{...OPT,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'$'+c.parsed.y+'M'}}},scales:{
+    x:{ticks:{...tickOpt,maxRotation:40},grid:{display:false}},
+    y:{ticks:{...tickOpt,callback:v=>'$'+v+'M'},grid:gridOpt}
+  }}
+});
+
+// Tab Proyección
+const proyData = [
+  {n:'ICBC SAU',    obj:1694, proye:956,  pct:56.4},
+  {n:'Stder Prend.',obj:336,  proye:193,  pct:57.4},
+  {n:'Consumer',    obj:815,  proye:650,  pct:79.7},
+  {n:'Naranja X',   obj:155,  proye:126,  pct:81.1},
+  {n:'Sup 2da',     obj:10,   proye:11.6, pct:112.2},
+  {n:'Stder 2da',   obj:782,  proye:371,  pct:47.4},
+];
+new Chart(document.getElementById('chartProye'),{
+  type:'bar',
+  data:{
+    labels:proyData.map(d=>d.n),
+    datasets:[
+      {label:'Proyección',data:proyData.map(d=>d.proye),backgroundColor:'rgba(139,92,246,0.7)',borderRadius:5,barPercentage:0.5},
+      {label:'Objetivo',  data:proyData.map(d=>d.obj),  backgroundColor:'rgba(255,255,255,0.06)',borderRadius:5,barPercentage:0.5}
+    ]
+  },
+  options:{...OPT,plugins:{legend:{display:true,position:'top',labels:{color:'#888',font:{size:10},boxWidth:10}}},scales:{
+    x:{ticks:{...tickOpt,maxRotation:35},grid:{display:false}},
+    y:{ticks:{...tickOpt,callback:v=>'$'+v+'M'},grid:gridOpt}
+  }}
+});
+// Escenarios
+const recAct = 1657.7;
+const diasRest = 6;
+const promDia = recAct/12;
+new Chart(document.getElementById('chartEscenarios'),{
+  type:'bar',
+  data:{
+    labels:['Pesimista\n(-20%)', 'Tendencia\n(actual)', 'Optimista\n(+30%)', 'Objetivo\n(100%)'],
+    datasets:[{
+      data:[
+        Math.round(recAct + promDia*diasRest*0.8),
+        Math.round(recAct + promDia*diasRest),
+        Math.round(recAct + promDia*diasRest*1.3),
+        4021
+      ],
+      backgroundColor:['#ef4444','#f59e0b','#10b981','rgba(255,255,255,0.1)'],
+      borderRadius:8,barPercentage:0.55
+    }]
+  },
+  options:{...OPT,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'$'+c.parsed.y+'M'}}},scales:{
+    x:{ticks:{...tickOpt,maxRotation:0},grid:{display:false}},
+    y:{ticks:{...tickOpt,callback:v=>'$'+v+'M'},grid:gridOpt}
+  }}
+});
+document.getElementById('tblProye').innerHTML = [
+  {n:'ICBC SAU',          obj:1694721362, rec:637540600.6, pct:37.62, proye:956310900.9,  ppct:56.43},
+  {n:'Santander Segunda', obj:782364293.5,rec:247261122.9, pct:31.60, proye:370891684.4,  ppct:null},
+  {n:'Stder Prendarios',  obj:336578786.1,rec:128836420.4, pct:38.28, proye:193254630.5,  ppct:57.42},
+  {n:'Consumer',          obj:815336019.1,rec:433345773.4, pct:53.15, proye:650018660,    ppct:79.72},
+  {n:'Naranja X',         obj:155417971.8,rec:84001018.6,  pct:54.05, proye:126001527.9,  ppct:81.07},
+  {n:'Sup. Segunda',      obj:10332176.63,rec:7726171.46,  pct:74.78, proye:11589257.19,  ppct:112.17},
+].map(d=>`<tr>
+  <td style="color:#e0e4e9">${d.n}</td>
+  <td class="n">${fM(d.obj)}</td>
+  <td class="n">${fM(d.rec)}</td>
+  <td class="r"><span class="pill ${pc(d.pct)}">${d.pct.toFixed(1)}%</span></td>
+  <td class="n" style="color:#8b5cf6">${fM(d.proye)}</td>
+  <td class="r"><span class="pill ${d.ppct?pc(d.ppct):'pill-r'}">${d.ppct?d.ppct.toFixed(1)+'%':'n/d'}</span></td>
+</tr>`).join('');
+</script>
+</body>
+</html>
